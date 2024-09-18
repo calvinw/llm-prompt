@@ -52,8 +52,8 @@ def get_responses(prompt, num_responses):
     llm = ChatOpenAI(
         model_name=model_name,
         openai_api_key=api_key,
-        openai_api_base="https://openrouter.ai/api/v1"
-       
+        openai_api_base="https://openrouter.ai/api/v1",
+        temperature=temperature
     )
     responses = []
     for _ in range(num_responses):
