@@ -1,12 +1,13 @@
 import streamlit as st
 import os
-from langchain_openai import ChatOpenAI
+from dotenv import load_dotenv
+import asyncio
+import aiohttp
 import re
 
-# def replace_custom_latex_delimiters(text):
-#     text = re.sub(r'\\$(.*?)\\$', r'$\1$', text)
-#     text = re.sub(r'\\$$(.*?)\\$$', r'$$\1$$', text, flags=re.DOTALL)
-#     return text
+# Load environment variables
+load_dotenv()
+
 def replace_custom_latex_delimiters(text):
     text = re.sub(r'\\\((.*?)\\\)', r'$\1$', text)
     text = re.sub(r'\\\[(.*?)\\\]', r'$$\1$$', text, flags=re.DOTALL)
@@ -47,20 +48,35 @@ with st.sidebar:
 
 st.title(model_name)
 
+async def call_openrouter_api(session, prompt, model, temperature, api_key):
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "http://localhost:8000",  # Replace with your actual URL
+        "X-Title": "Streamlit OpenRouter App",
+    }
+    
+    payload = {
+        "model": model,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": temperature
+    }
+    
+    async with session.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload) as response:
+        if response.status == 200:
+            data = await response.json()
+            return data['choices'][0]['message']['content']
+        else:
+            return f"Error: {response.status}"
+
+async def get_responses_async(prompt, num_responses, model, temperature, api_key):
+    async with aiohttp.ClientSession() as session:
+        tasks = [call_openrouter_api(session, prompt, model, temperature, api_key) for _ in range(num_responses)]
+        responses = await asyncio.gather(*tasks)
+    return [replace_custom_latex_delimiters(response) for response in responses]
+
 def get_responses(prompt, num_responses):
     api_key = openrouter_api_key if openrouter_api_key else os.environ.get("OPENROUTER_API_KEY")
-    llm = ChatOpenAI(
-        model_name=model_name,
-        openai_api_key=api_key,
-        openai_api_base="https://openrouter.ai/api/v1",
-        temperature=temperature
-    )
-    responses = []
-    for _ in range(num_responses):
-        response = llm.invoke(prompt)
-        fixed_content = replace_custom_latex_delimiters(response.content)
-        responses.append(fixed_content)
-    return responses
+    return asyncio.run(get_responses_async(prompt, num_responses, model_name, temperature, api_key))
 
 if "responses" not in st.session_state:
     st.session_state.responses = []
@@ -69,8 +85,8 @@ if "prompt" not in st.session_state:
 
 st.markdown("### Prompt")
 with st.form("prompt_form"):
-    prompt = st.text_area("Enter your prompt:", value=st.session_state.prompt, height=200, key="prompt_input")
-    num_responses = st.radio("Select number of responses", options=[1, 2, 3], index=0, horizontal=True)
+    prompt = st.text_area("Enter your prompt:", value=st.session_state.prompt, height=100, key="prompt_input")
+    num_responses = st.radio("Select number of responses", options=[1, 2, 3, 4], index=0, horizontal=True)
     col1, col2, col3 = st.columns([1, 1, 4])
     with col1:
         submitted = st.form_submit_button("Submit")
@@ -87,7 +103,8 @@ if submitted:
         st.warning("Please enter your OPENROUTER API key!", icon="⚠")
     elif prompt.strip() != "":
         st.session_state.prompt = prompt
-        st.session_state.responses = get_responses(prompt, num_responses)
+        with st.spinner("Generating responses..."):
+            st.session_state.responses = get_responses(prompt, num_responses)
         st.rerun()
 
 st.markdown("### Responses:")
