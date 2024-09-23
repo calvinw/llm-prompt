@@ -48,16 +48,21 @@ with st.sidebar:
 
 st.title(model_name)
 
-async def call_openrouter_api(session, prompt, model, temperature, api_key):
+async def call_openrouter_api(session, system_prompt, prompt, model, temperature, api_key):
     headers = {
         "Authorization": f"Bearer {api_key}",
         "HTTP-Referer": "http://localhost:8000",  # Replace with your actual URL
         "X-Title": "Streamlit OpenRouter App",
     }
     
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+    
     payload = {
         "model": model,
-        "messages": [{"role": "user", "content": prompt}],
+        "messages": messages,
         "temperature": temperature
     }
     
@@ -68,24 +73,27 @@ async def call_openrouter_api(session, prompt, model, temperature, api_key):
         else:
             return f"Error: {response.status}"
 
-async def get_responses_async(prompt, num_responses, model, temperature, api_key):
+async def get_responses_async(system_prompt, prompt, num_responses, model, temperature, api_key):
     async with aiohttp.ClientSession() as session:
-        tasks = [call_openrouter_api(session, prompt, model, temperature, api_key) for _ in range(num_responses)]
+        tasks = [call_openrouter_api(session, system_prompt, prompt, model, temperature, api_key) for _ in range(num_responses)]
         responses = await asyncio.gather(*tasks)
     return [replace_custom_latex_delimiters(response) for response in responses]
 
-def get_responses(prompt, num_responses):
+def get_responses(system_prompt, prompt, num_responses):
     api_key = openrouter_api_key if openrouter_api_key else os.environ.get("OPENROUTER_API_KEY")
-    return asyncio.run(get_responses_async(prompt, num_responses, model_name, temperature, api_key))
+    return asyncio.run(get_responses_async(system_prompt, prompt, num_responses, model_name, temperature, api_key))
 
 if "responses" not in st.session_state:
     st.session_state.responses = []
 if "prompt" not in st.session_state:
     st.session_state.prompt = ""
+if "system_prompt" not in st.session_state:
+    st.session_state.system_prompt = ""
 
 st.markdown("### Prompt")
 with st.form("prompt_form"):
-    prompt = st.text_area("Enter your prompt:", value=st.session_state.prompt, height=100, key="prompt_input")
+    system_prompt = st.text_area("System Prompt (optional):", value=st.session_state.system_prompt, height=50, key="system_prompt_input")
+    prompt = st.text_area("User Prompt:", value=st.session_state.prompt, height=200, key="prompt_input")
     num_responses = st.radio("Select number of responses", options=[1, 2, 3, 4], index=0, horizontal=True)
     col1, col2, col3 = st.columns([1, 1, 4])
     with col1:
@@ -95,6 +103,7 @@ with st.form("prompt_form"):
 
 if reset:
     st.session_state.prompt = ""
+    st.session_state.system_prompt = ""
     st.session_state.responses = []
     st.rerun()
 
@@ -103,8 +112,9 @@ if submitted:
         st.warning("Please enter your OPENROUTER API key!", icon="⚠")
     elif prompt.strip() != "":
         st.session_state.prompt = prompt
+        st.session_state.system_prompt = system_prompt
         with st.spinner("Generating responses..."):
-            st.session_state.responses = get_responses(prompt, num_responses)
+            st.session_state.responses = get_responses(system_prompt, prompt, num_responses)
         st.rerun()
 
 st.markdown("### Responses:")
