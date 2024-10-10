@@ -22,22 +22,40 @@ SPECIFIED_MODELS = [
     "anthropic/claude-3-haiku",
     "anthropic/claude-3.5-sonnet",
     "google/gemini-pro-1.5",
-    "google/gemini-pro",
-    "google/gemma-2-27b-it",
     "google/gemini-flash-1.5",
     "mistralai/mistral-large",
     "mistralai/mistral-medium",
     "meta-llama/llama-3-70b-instruct",
     "meta-llama/llama-3-8b-instruct:free",
     "microsoft/wizardlm-2-8x22b",
-    "cognitivecomputations/dolphin-mixtral-8x22b",
-    "cognitivecomputations/dolphin-mixtral-8x7b",
-    "qwen/qwen-72b-chat",
-    "cohere/command-r-plus",
-    "cohere/command-r",
     "nousresearch/hermes-3-llama-3.1-405b:free",
-    "Custom (type your own)"  # Add this option at the end
 ]
+
+def get_model_pricing(model_info):
+    pricing = model_info.get('pricing', {})
+    prompt_price = float(pricing.get('prompt', 0)) * 1000  # Convert to price per 1000 tokens
+    completion_price = float(pricing.get('completion', 0)) * 1000  # Convert to price per 1000 tokens
+    return prompt_price, completion_price
+
+async def fetch_models_data_async(api_key):
+    url = "https://openrouter.ai/api/v1/models"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "http://localhost:8000",  # Replace with your actual URL
+        "X-Title": "Streamlit OpenRouter App",
+    }
+    
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, headers=headers) as response:
+            if response.status == 200:
+                return await response.json()
+            else:
+                st.error(f"Failed to fetch models data: {response.status}")
+                return None
+
+@st.cache_data(ttl=3600)  # Cache the result for 1 hour
+def get_models_data(api_key):
+    return asyncio.run(fetch_models_data_async(api_key))
 
 st.set_page_config(page_title="Prompt Editor", page_icon="📝", layout="wide")
 
@@ -45,25 +63,72 @@ with st.sidebar:
     st.title("Prompt Editor Settings")
     openrouter_api_key = st.text_input("Enter your OPENROUTER_API_KEY:", type="password")
     st.caption("If left empty, the app will use the API key from the .env file.")
+
+# Use the API key from user input or environment variable
+api_key = openrouter_api_key or os.getenv("OPENROUTER_API_KEY")
+
+if not api_key:
+    st.warning("Please enter your OPENROUTER API key in the sidebar or set it in your .env file.", icon="⚠️")
+    st.stop()
+
+# Use the function to get models data
+models_data = get_models_data(api_key)
+
+if models_data:
+    # Create a dictionary for quick model lookup
+    models_dict = {model['id']: model for model in models_data['data']}
     
-    model_selection = st.selectbox("Select a model:", SPECIFIED_MODELS, index=0)
+    # Create a list of all model names from the API
+    all_model_options = [model['id'] for model in models_data['data']]
+    
+    # Create the final model_options list
+    model_options = []
+    
+    # Add specified models that exist in the API data
+    for model in SPECIFIED_MODELS:
+        if model in all_model_options:
+            model_options.append(model)
+    
+    # Add remaining models from the API data
+    for model in all_model_options:
+        if model not in SPECIFIED_MODELS:
+            model_options.append(model)
+    
+    # Add the custom option at the end
+    model_options.append("Custom (type your own)")
+else:
+    models_dict = {}
+    model_options = ["Custom (type your own)"]
+
+with st.sidebar:
+    model_selection = st.selectbox("Select a model:", model_options, index=0)
     
     if model_selection == "Custom (type your own)":
         model_name = st.text_input("Enter custom model name:")
     else:
         model_name = model_selection
     
+    # Display pricing information
+    if model_name in models_dict:
+        prompt_price, completion_price = get_model_pricing(models_dict[model_name])
+        st.markdown("""
+        <div style='font-size: 18px; font-weight: bold;'>
+        Pricing: ${:.4f}/${:.4f} per 1k tokens
+        </div>
+        """.format(prompt_price, completion_price), unsafe_allow_html=True)
+    
+    # Display model description in sidebar
+    if model_name in models_dict:
+        model_description = models_dict[model_name].get('description', 'No description available.')
+        st.markdown("### Model Description")
+        st.write(model_description)
+    
     temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=1.0, step=0.1)
 
-st.title(model_name)
+# Display only the model name as the main title
+st.markdown(f"# `{model_name}`")
 
-# Load models data
-with open('models.json', 'r') as f:
-    models_data = json.load(f)['data']
-
-# Create a dictionary for quick model lookup
-models_dict = {model['id']: model for model in models_data}
-
+# Replace the part where you load models data from the file
 async def call_openrouter_api(session, system_prompt, prompt, model, temperature, api_key):
     headers = {
         "Authorization": f"Bearer {api_key}",
