@@ -1,4 +1,6 @@
 myenv
+ignore
+llm-prompt-env
 .env
 save
 *2024*

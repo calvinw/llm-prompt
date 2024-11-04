@@ -4,8 +4,8 @@
 timestamp=$(date +"%Y%m%d_%H%M%S")
 
 # Define the source and backup file names
-source_file="app.py"
-backup_file="app.py.$timestamp"
+source_file="chat_app.py"
+backup_file="chat_app.py.$timestamp"
 
 # Check if the source file exists
 if [ ! -f "$source_file" ]; then
@@ -24,4 +24,4 @@ else
     exit 1
 fi
 
-mv ~/Downloads/simplified-app-py.py app.py
+mv ~/Downloads/updated-chat-app.py chat_app.py
