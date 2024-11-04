@@ -1,8 +1,16 @@
 # Understanding Effective FLUX.1 Prompts
 
-This note provides a breakdown of the key components of an effective FLUX.1 prompt, along with illustrative examples for each concept.
+## Introductory Example
 
-## Subject
+### A Sample Prompt For a Cat
+
+Fluffy, gray tabby cat, sitting gracefully on a windowsill, overlooking a
+bustling city street at sunset. Warm, golden sunlight streaming through the
+window, peaceful and contemplative. Photorealistic
+
+## What Elements Make up Prompts for FLUX.1 Prompting
+
+### Subject
 
 The focal point of the image. Be specific. "A portrait of a woman" is too vague. "A close-up portrait of a middle-aged woman with curly red hair, green eyes, and freckles, wearing a blue silk blouse" is better.
 
@@ -12,7 +20,7 @@ Examples:
 * A curious red fox exploring a misty autumn forest at dawn
 * A translucent, iridescent, holographic sculpture of a lion with an ethereal glow of rainbow colors
 
-## Style
+### Style
 
 The artistic approach or visual aesthetic you want. You can reference specific artists, art movements, or styles to guide FLUX.1.
 
@@ -23,7 +31,7 @@ Examples:
 * Art Deco
 * In the style of Van Gogh
 
-## Composition
+### Composition
 
 How elements are arranged in the frame. Consider aspects like framing and perspective.
 
@@ -33,7 +41,7 @@ Examples:
 * Close-up
 * Centered vertically and horizontally, taking up 1/3 of the space
 
-## Lighting
+### Lighting
 
 The type and quality of light in the scene. Use terms like "soft sunlight" or "harsh overhead lighting".
 
@@ -43,7 +51,7 @@ Examples:
 * Dramatic lighting with strong shadows and highlights
 * Soft, diffused light
 
-## Color Palette
+### Color Palette
 
 The dominant colors or color scheme. Don't assume the AI will infer colors, state them explicitly.
 
@@ -53,7 +61,7 @@ Examples:
 * Cool colors
 * Purple and green color scheme
 
-## Mood/Atmosphere
+### Mood/Atmosphere
 
 The emotional tone or ambiance of the image. Words like "eerie," "serene," or "futuristic" set the mood.
 
@@ -63,7 +71,7 @@ Examples:
 * Powerful, regal, awe-inspiring
 * Playful, whimsical, childlike
 
-## Technical Details
+### Technical Details
 
 Camera settings, perspective, or specific visual techniques. You can use photography terminology to give the AI direction.
 
@@ -73,7 +81,7 @@ Examples:
 * High ISO setting to capture the ambient light
 * Shallow depth of field
 
-## Additional Elements
+### Additional Elements
 
 Supporting details or background information. The more details you give, the better.
 
@@ -83,12 +91,12 @@ Examples:
 * Guards standing at attention, exotic animals like leopards and peacocks adding to the opulence
 * Overlapping layers and slightly uneven edges to mimic the handcrafted look of a collage
 
-## Example FLUX Generation Prompts
+## Example Prompts
 
 ## The Mystical Treehouse
 
-- **Subject**: A magical treehouse
-- **Style**: Whimsical, fairytale illustration
+- **Subject**: A treehouse
+- **Style**: Whimsical, magical, fairytale illustration
 - **Composition**: Nestled among towering trees in an enchanted forest
 - **Lighting**: Soft, ethereal light
 - **Color Palette**: Vibrant greens, blues, and purples
@@ -100,8 +108,8 @@ Examples:
 
 ## Victorian Greenhouse
 
-- **Subject**: An abandoned Victorian greenhouse
-- **Style**: Gothic romantic, detailed architectural illustration
+- **Subject**: An Victorian greenhouse
+- **Style**: Abandoned, gothic romantic, detailed architectural illustration
 - **Composition**: Interior view with soaring glass ceiling and overgrown plants
 - **Lighting**: Early morning fog with rays of sunlight piercing through dusty windows
 - **Color Palette**: Weathered copper greens, misty grays, and pale golden light
@@ -211,6 +219,7 @@ Examples:
 - **Color Palette**: Warm earth tones with vibrant reds, greens, and a golden hue  
 - **Mood**: Cheerful and playful, evoking a sense of innocence and fun  
 - **Technical Details**: Shot at f/2.8 for a shallow depth of field, with a focus on the puppy's eyes and a blurred background for emphasis  
+
 **Complete Prompt**: A playful Labrador puppy wearing a bright red bandana, in a hyperrealistic style. Close-up composition, with the puppy's tongue out and one ear flopped over. Soft natural light, early morning sun casting a gentle glow. Warm earth tones with vibrant reds, greens, and a golden hue. Cheerful and playful mood, evoking a sense of innocence and fun. Shot at f/2.8 for a shallow depth of field, focusing on the puppy's eyes with a blurred background for emphasis.
 
 ## The Baseball Glove 
