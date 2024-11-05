@@ -2,14 +2,14 @@ import streamlit as st
 import os
 from openai import OpenAI
 
-def get_flux_image(api_key, prompt="A flying cat"):
+def get_flux_image(api_key, prompt="A flying cat", model="black-forest-labs/FLUX.1-schnell-Free"):
     try:
         client = OpenAI(
             api_key=api_key, base_url="https://api.together.xyz/v1"
         )
         response = client.images.generate(
             prompt=prompt,
-            model="black-forest-labs/FLUX.1-schnell-Free",
+            model=model,
             n=1,
         )
         return response.data[0].url
@@ -30,6 +30,15 @@ def main():
 
     # Input field for API key
     api_key = st.text_input("TogetherAI API Key", type="password")
+
+    # Model selection dropdown
+    models = [
+        "black-forest-labs/FLUX.1-schnell-Free",
+        "black-forest-labs/FLUX.1-schnell",
+        "black-forest-labs/FLUX.1.1-pro",
+        "black-forest-labs/FLUX.1-pro"
+    ]
+    selected_model = st.selectbox("Select Model", models)
 
     # Display all previous prompts and images
     for i in range(len(st.session_state.prompts)):
@@ -59,7 +68,7 @@ def main():
             if st.button(f"Regenerate Image (Step {i + 1})", key=f"regenerate_{i}"):
                 if api_key:
                     with st.spinner(f"Regenerating image for Step {i + 1}..."):
-                        image_url = get_flux_image(api_key, st.session_state.prompts[i])
+                        image_url = get_flux_image(api_key, st.session_state.prompts[i], selected_model)
                         st.session_state.images[i] = image_url
                         st.rerun()
                 else:
@@ -84,7 +93,7 @@ def main():
         if api_key:
             if current_prompt:
                 with st.spinner("Generating image..."):
-                    image_url = get_flux_image(api_key, current_prompt)
+                    image_url = get_flux_image(api_key, current_prompt, selected_model)
                     
                     # Store the prompt and image
                     st.session_state.prompts.append(current_prompt)
@@ -107,4 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
